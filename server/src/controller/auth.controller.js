@@ -79,4 +79,27 @@ async function loginUser(req, res) {
     }
 }
 
-module.exports = {registerUser, loginUser}
+function logoutUser(req,res){
+
+    res.clearCookie("token")
+
+    res.json({
+        message:"Logged out successfully"
+    })
+}
+
+async function getme(req , res) {
+    const user = await User.findById(req.user.id)
+
+
+    res.status(200).json({
+        message:'user details fetched sucessfully',
+        user:{
+            id : user._id,
+            email : user.email,
+            username : user.username
+        }
+    })
+}
+
+module.exports = {registerUser, loginUser , logoutUser , getme}
