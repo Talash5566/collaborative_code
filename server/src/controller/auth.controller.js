@@ -54,7 +54,10 @@ async function loginUser(req, res) {
 
         // generate token
         const token = jwt.sign(
-            { id: user._id },
+            {
+                id: user._id,
+                username: user.username,
+            },
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
         )
@@ -79,27 +82,27 @@ async function loginUser(req, res) {
     }
 }
 
-function logoutUser(req,res){
+function logoutUser(req, res) {
 
     res.clearCookie("token")
 
     res.json({
-        message:"Logged out successfully"
+        message: "Logged out successfully"
     })
 }
 
-async function getme(req , res) {
+async function getme(req, res) {
     const user = await User.findById(req.user.id)
 
 
     res.status(200).json({
-        message:'user details fetched sucessfully',
-        user:{
-            id : user._id,
-            email : user.email,
-            username : user.username
+        message: 'user details fetched sucessfully',
+        user: {
+            id: user._id,
+            email: user.email,
+            username: user.username
         }
     })
 }
 
-module.exports = {registerUser, loginUser , logoutUser , getme}
+module.exports = { registerUser, loginUser, logoutUser, getme }
