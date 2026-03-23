@@ -50,26 +50,27 @@ async function registerUser(req, res) {
 }
 
 async function loginUser(req, res) {
-    const { email, password } = req.body
+    let { email, password } = req.body; 
+
     try {
         email = email.trim().toLowerCase();
-        const user = await User.findOne({ email })
+
+        const user = await User.findOne({ email });
+
         if (!user) {
             return res.status(400).json({
-                message: "User Not Exists"  // Fixed typo: "Exist" to "Exists"
-            })
+                message: "User Not Exists"
+            });
         }
 
-        // compare password
-        const isMatch = await bcrypt.compare(password, user.password)
+        const isMatch = await bcrypt.compare(password, user.password);
 
         if (!isMatch) {
             return res.status(400).json({
                 message: "Invalid email or password"
-            })
+            });
         }
 
-        // generate token
         const token = jwt.sign(
             {
                 id: user._id,
@@ -77,25 +78,24 @@ async function loginUser(req, res) {
             },
             process.env.JWT_SECRET,
             { expiresIn: "7d" }
-        )
+        );
 
-        // cookies
         res.cookie("token", token, {
             httpOnly: true,
             secure: false,
             maxAge: 7 * 24 * 60 * 60 * 1000
-        })
+        });
 
         res.status(200).json({
             message: "Login Successful",
             token,
             user
-        })
+        });
     } catch (error) {
-        console.log(error)
-        res.status(500).json({  // Added error response for login
+        console.log(error);
+        res.status(500).json({
             message: error.message
-        })
+        });
     }
 }
 
