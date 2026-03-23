@@ -4,32 +4,48 @@ const bcrypt = require('bcrypt')
 const User = require('../models/User')
 
 async function registerUser(req, res) {
-    const { username, email, password } = req.body
+    let { username, email, password } = req.body;
+
     try {
-        const existingUser = await User.findOne({ email })
+        email = email.trim().toLowerCase();
+        username = username.trim();
+
+        const existingUser = await User.findOne({ email });
 
         if (existingUser) {
-            return res.status(400).json({  // Added status code for better error handling
+            return res.status(400).json({
                 message: 'User Already Exists'
-            })
+            });
         }
 
-        const hash = await bcrypt.hash(password, 10)
-        const user = await User.create({  // Changed from 'user =' to 'const user'
+        const hash = await bcrypt.hash(password, 10);
+
+        const user = await User.create({
             username,
             email,
             password: hash
-        })
+        });
+
+        const token = jwt.sign(
+            { id: user._id },
+            process.env.JWT_SECRET,
+            { expiresIn: '7d' }
+        );
+
+        res.cookie('token', token, {
+            httpOnly: true,
+            secure: false,
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        });
 
         res.status(201).json({
-            message: "User Registered Successfully",
+            message: 'User Registered Successfully',
             user
-        })
-
+        });
     } catch (error) {
         res.status(500).json({
-            message: error.message  // Changed to error.message to get actual error text
-        })
+            message: error.message
+        });
     }
 }
 

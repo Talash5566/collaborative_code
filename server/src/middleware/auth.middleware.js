@@ -26,7 +26,7 @@ function authUser(req , res , next){
 
     } catch (error) {
         res.status(400).json({
-            message:'problem in middleware'
+            message: error.message
         })
     }
 }
