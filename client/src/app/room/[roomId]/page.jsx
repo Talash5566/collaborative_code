@@ -9,6 +9,7 @@ import UserSidebar from '@/components/room/UserSidebar';
 import RoomHeader from '@/components/room/RoomHeader';
 
 export default function RoomPage() {
+
   const { roomId } = useParams();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
@@ -37,7 +38,10 @@ export default function RoomPage() {
   // Join the Socket.IO room once room + user are both ready
   useEffect(() => {
     if (!room || !user) return;
-    emit('join_room', { roomId, user });
+    emit('join_room', {
+      roomId,
+      username: user.username,
+    });
   }, [room, user, roomId, emit]);
 
   // Listen for live user list updates
@@ -49,12 +53,12 @@ export default function RoomPage() {
 
   // Show join/leave notifications briefly
   useEffect(() => {
-    const cleanupJoin = on('user_joined', ({ message }) => {
-      setNotification(message);
+    const cleanupJoin = on('user_connected', ({ username }) => {
+      setNotification(`${username} joined the room`);
       setTimeout(() => setNotification(''), 3000);
     });
-    const cleanupLeft = on('user_left', ({ message }) => {
-      setNotification(message);
+    const cleanupLeft = on('user_disconnected', ({ username }) => {
+      setNotification(`${username} left the room`);
       setTimeout(() => setNotification(''), 3000);
     });
     return () => { cleanupJoin(); cleanupLeft(); };

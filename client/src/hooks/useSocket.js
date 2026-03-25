@@ -8,13 +8,20 @@ export const useSocket = () => {
   const socketRef = useRef(null);
 
   useEffect(() => {
-    // KEY: socket in a ref, NOT useState — prevents re-renders from killing the connection
     socketRef.current = io(SOCKET_URL, {
-      withCredentials: true,   // send auth cookie with socket handshake too
-      transports: ['websocket'],
+      withCredentials: true,
+      transports: ['polling', 'websocket'],
       reconnection: true,
       reconnectionAttempts: 5,
       reconnectionDelay: 1000,
+    });
+
+    socketRef.current.on('connect', () => {
+      console.log('socket connected:', socketRef.current.id);
+    });
+
+    socketRef.current.on('connect_error', (err) => {
+      console.log('socket connect error:', err.message);
     });
 
     return () => {
@@ -22,7 +29,6 @@ export const useSocket = () => {
     };
   }, []);
 
-  // Emit an event to the server
   const emit = useCallback((event, data) => {
     if (socketRef.current?.connected) {
       socketRef.current.emit(event, data);
@@ -31,7 +37,6 @@ export const useSocket = () => {
     }
   }, []);
 
-  // Listen for an event. Returns a cleanup function — use in useEffect
   const on = useCallback((event, handler) => {
     socketRef.current?.on(event, handler);
     return () => socketRef.current?.off(event, handler);
