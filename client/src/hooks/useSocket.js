@@ -1,27 +1,26 @@
 'use client';
-import { useEffect, useRef, useCallback } from 'react';
+import { useEffect, useRef, useCallback, useState } from 'react';
 import { io } from 'socket.io-client';
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
 
 export const useSocket = () => {
   const socketRef = useRef(null);
+  const [connected, setConnected] = useState(false);
 
   useEffect(() => {
     socketRef.current = io(SOCKET_URL, {
       withCredentials: true,
       transports: ['polling', 'websocket'],
-      reconnection: true,
-      reconnectionAttempts: 5,
-      reconnectionDelay: 1000,
     });
 
     socketRef.current.on('connect', () => {
       console.log('socket connected:', socketRef.current.id);
+      setConnected(true); // ✅ VERY IMPORTANT
     });
 
-    socketRef.current.on('connect_error', (err) => {
-      console.log('socket connect error:', err.message);
+    socketRef.current.on('disconnect', () => {
+      setConnected(false);
     });
 
     return () => {
@@ -30,11 +29,7 @@ export const useSocket = () => {
   }, []);
 
   const emit = useCallback((event, data) => {
-    if (socketRef.current?.connected) {
-      socketRef.current.emit(event, data);
-    } else {
-      console.warn(`Socket not connected. Tried to emit: ${event}`);
-    }
+    socketRef.current?.emit(event, data); // no need to block
   }, []);
 
   const on = useCallback((event, handler) => {
@@ -42,5 +37,5 @@ export const useSocket = () => {
     return () => socketRef.current?.off(event, handler);
   }, []);
 
-  return { socketRef, emit, on };
+  return { socketRef, emit, on, connected };
 };

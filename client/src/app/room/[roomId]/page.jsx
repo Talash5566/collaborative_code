@@ -13,7 +13,7 @@ export default function RoomPage() {
   const { roomId } = useParams();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { emit, on } = useSocket();
+  const { emit, on , connected } = useSocket();
 
   const [room, setRoom] = useState(null);
   const [users, setUsers] = useState([]);
@@ -37,12 +37,14 @@ export default function RoomPage() {
 
   // Join the Socket.IO room once room + user are both ready
   useEffect(() => {
-    if (!room || !user) return;
+    if (!room || !user || !connected) return;
+  
     emit('join_room', {
       roomId,
       username: user.username,
     });
-  }, [room, user, roomId, emit]);
+  
+  }, [room, user, roomId, connected, emit]);
 
   // Listen for live user list updates
   useEffect(() => {
