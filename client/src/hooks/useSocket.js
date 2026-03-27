@@ -16,7 +16,7 @@ export const useSocket = () => {
 
     socketRef.current.on('connect', () => {
       console.log('socket connected:');
-      setConnected(true); // ✅ VERY IMPORTANT
+      setConnected(true); 
     });
 
     socketRef.current.on('disconnect', () => {

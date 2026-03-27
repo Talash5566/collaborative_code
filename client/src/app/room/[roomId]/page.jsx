@@ -7,13 +7,13 @@ import api from '@/lib/api';
 import Navbar from '@/components/layout/Navbar';
 import UserSidebar from '@/components/room/UserSidebar';
 import RoomHeader from '@/components/room/RoomHeader';
-
+import Editor from '@monaco-editor/react';
 export default function RoomPage() {
 
   const { roomId } = useParams();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { emit, on , connected } = useSocket();
+  const { emit, on, connected } = useSocket();
 
   const [room, setRoom] = useState(null);
   const [users, setUsers] = useState([]);
@@ -38,12 +38,12 @@ export default function RoomPage() {
   // Join the Socket.IO room once room + user are both ready
   useEffect(() => {
     if (!room || !user || !connected) return;
-  
+
     emit('join_room', {
       roomId,
       username: user.username,
     });
-  
+
   }, [room, user, roomId, connected, emit]);
 
   // Listen for live user list updates
@@ -118,8 +118,12 @@ export default function RoomPage() {
                   d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4" />
               </svg>
             </div>
-            <p className="text-gray-700 font-medium">Monaco Editor</p>
-            <p className="text-sm text-gray-400 mt-1">Coming in Phase 2</p>
+            <Editor
+              height="100%"
+              defaultLanguage="javascript"
+              defaultValue="// Start coding here..."
+              theme="vs-dark"
+            />
             <div className="mt-4 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
               <p className="text-xs text-green-700 font-medium">
                 Phase 1 working — {users.length} user{users.length !== 1 ? 's' : ''} connected
