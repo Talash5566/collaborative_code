@@ -30,13 +30,16 @@ export default function DashboardPage() {
   }, []);
 
   const addToRecent = (room) => {
-    const updated = [room, ...recentRooms.filter(r => r.roomId !== room.roomId)].slice(0, 6);
+    const updated = [room, ...recentRooms.filter((r) => r.roomId !== room.roomId)].slice(0, 6);
     setRecentRooms(updated);
     localStorage.setItem('cs_recent_rooms', JSON.stringify(updated));
   };
 
   const handleCreateRoom = async () => {
-    if (!roomName.trim()) { setError('Enter a room name'); return; }
+    if (!roomName.trim()) {
+      setError('Enter a room name');
+      return;
+    }
     setCreating(true);
     setError('');
     try {
@@ -55,108 +58,213 @@ export default function DashboardPage() {
 
   const handleJoinRoom = () => {
     const code = joinCode.trim();
-    if (!code) { setError('Enter a room code'); return; }
+    if (!code) {
+      setError('Enter a room code');
+      return;
+    }
     router.push(`/room/${code}`);
   };
 
   if (loading || !user) return null;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-black text-white">
       <Navbar />
-      <div className="max-w-3xl mx-auto px-4 py-10">
-        <h1 className="text-2xl font-semibold text-gray-900 mb-1">
-          Welcome, {user.username}
-        </h1>
-        <p className="text-sm text-gray-500 mb-8">Create a room or join an existing one.</p>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3 mb-6">
-            {error}
-            <button onClick={() => setError('')} className="float-right font-bold">×</button>
-          </div>
-        )}
+      <main className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.12),transparent_30%)] pointer-events-none" />
+        <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.08),transparent_25%)] pointer-events-none" />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-10">
-          {/* Create room card */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
-            <h2 className="text-base font-semibold text-gray-900 mb-4">Create a new room</h2>
-            <div className="space-y-3">
-              <input
-                type="text"
-                value={roomName}
-                onChange={(e) => setRoomName(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleCreateRoom()}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                placeholder="Room name (e.g. DSA practice)"
-              />
-              <select
-                value={language}
-                onChange={(e) => setLanguage(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
-              >
-                {LANGUAGES.map(lang => (
-                  <option key={lang} value={lang}>{lang}</option>
-                ))}
-              </select>
-              <button
-                onClick={handleCreateRoom}
-                disabled={creating}
-                className="w-full py-2.5 bg-blue-600 text-white text-sm font-medium rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
-              >
-                {creating ? 'Creating...' : '+ Create room'}
-              </button>
+        <div className="relative mx-auto max-w-6xl px-6 pt-14 pb-20">
+          <div className="mx-auto max-w-3xl text-center">
+            <div className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-sm text-white/70">
+              <span className="h-2 w-2 rounded-full bg-blue-500" />
+              Workspace dashboard
             </div>
+
+            <h1 className="mt-6 text-4xl font-semibold tracking-tight text-white sm:text-5xl">
+              Welcome back, {user.username}
+            </h1>
+
+            <p className="mx-auto mt-4 max-w-2xl text-base leading-7 text-white/45 sm:text-lg">
+              Create a new collaboration room, join an existing workspace, and
+              continue coding with your team in real time.
+            </p>
           </div>
 
-          {/* Join room card */}
-          <div className="bg-white border border-gray-200 rounded-2xl p-6">
-            <h2 className="text-base font-semibold text-gray-900 mb-4">Join existing room</h2>
-            <div className="space-y-3">
-              <input
-                type="text"
-                value={joinCode}
-                onChange={(e) => setJoinCode(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 font-mono"
-                placeholder="Room code e.g. x7k3m9pq"
-              />
-              <button
-                onClick={handleJoinRoom}
-                className="w-full py-2.5 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-800 transition-colors"
-              >
-                Join room
-              </button>
-            </div>
-          </div>
-        </div>
-
-        {/* Recent rooms */}
-        {recentRooms.length > 0 && (
-          <div>
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wide mb-3">
-              Recent rooms
-            </h2>
-            <div className="space-y-2">
-              {recentRooms.map((room) => (
+          {error && (
+            <div className="mx-auto mt-8 max-w-3xl rounded-2xl border border-red-500/20 bg-red-500/10 px-4 py-4 text-sm text-red-300">
+              <div className="flex items-center justify-between gap-4">
+                <span>{error}</span>
                 <button
-                  key={room.roomId}
-                  onClick={() => router.push(`/room/${room.roomId}`)}
-                  className="w-full flex items-center justify-between bg-white border border-gray-200 rounded-xl px-4 py-3 hover:border-blue-300 transition-colors text-left"
+                  onClick={() => setError('')}
+                  className="text-red-300/80 hover:text-red-200"
                 >
-                  <div>
-                    <p className="text-sm font-medium text-gray-900">{room.name}</p>
-                    <p className="text-xs text-gray-400 font-mono mt-0.5">{room.roomId}</p>
-                  </div>
-                  <span className="text-xs px-2 py-1 bg-gray-100 text-gray-600 rounded-md">
-                    {room.language}
-                  </span>
+                  ×
                 </button>
-              ))}
+              </div>
             </div>
+          )}
+
+          <div className="mt-12 grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] backdrop-blur-sm">
+              <div className="mb-6">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-blue-400/90">
+                  Create room
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-white">
+                  Start a fresh session
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-white/40">
+                  Create a new room, choose your language, and invite others with
+                  the room code.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-2 block text-sm text-white/65">
+                    Room name
+                  </label>
+                  <input
+                    type="text"
+                    value={roomName}
+                    onChange={(e) => setRoomName(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleCreateRoom()}
+                    placeholder="e.g. DSA practice, System design"
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:text-white/20 transition focus:border-blue-500/60 focus:bg-white/[0.05]"
+                  />
+                </div>
+
+                <div>
+                  <label className="mb-2 block text-sm text-white/65">
+                    Language
+                  </label>
+                  <select
+                    value={language}
+                    onChange={(e) => setLanguage(e.target.value)}
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none transition focus:border-blue-500/60 focus:bg-white/[0.05]"
+                  >
+                    {LANGUAGES.map((lang) => (
+                      <option key={lang} value={lang} className="bg-neutral-900">
+                        {lang}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <button
+                  onClick={handleCreateRoom}
+                  disabled={creating}
+                  className="w-full rounded-2xl border border-white/15 bg-white/[0.08] px-4 py-3 text-sm font-medium text-white transition hover:bg-white/[0.14] disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {creating ? 'Creating...' : 'Create room'}
+                </button>
+              </div>
+            </section>
+
+            <section className="rounded-3xl border border-white/10 bg-white/[0.04] p-6 shadow-[0_0_0_1px_rgba(255,255,255,0.02)] backdrop-blur-sm">
+              <div className="mb-6">
+                <p className="text-xs font-medium uppercase tracking-[0.18em] text-emerald-400/90">
+                  Join room
+                </p>
+                <h2 className="mt-2 text-2xl font-semibold text-white">
+                  Enter an existing workspace
+                </h2>
+                <p className="mt-2 text-sm leading-6 text-white/40">
+                  Paste a room code shared by your team and continue where the
+                  session left off.
+                </p>
+              </div>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="mb-2 block text-sm text-white/65">
+                    Room code
+                  </label>
+                  <input
+                    type="text"
+                    value={joinCode}
+                    onChange={(e) => setJoinCode(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleJoinRoom()}
+                    placeholder="e.g. a5o-bsv"
+                    className="w-full rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm text-white outline-none placeholder:font-mono placeholder:text-white/20 transition focus:border-emerald-500/60 focus:bg-white/[0.05]"
+                  />
+                </div>
+
+                <button
+                  onClick={handleJoinRoom}
+                  className="w-full rounded-2xl border border-white/15 bg-transparent px-4 py-3 text-sm font-medium text-white/80 transition hover:bg-white/[0.06] hover:text-white"
+                >
+                  Join room
+                </button>
+              </div>
+
+              <div className="mt-8 rounded-2xl border border-white/8 bg-black/20 p-4">
+                <p className="text-xs uppercase tracking-[0.18em] text-white/30">
+                  Quick note
+                </p>
+                <p className="mt-2 text-sm leading-6 text-white/45">
+                  Sharing the exact room code is enough for another user to join
+                  the same collaborative session.
+                </p>
+              </div>
+            </section>
           </div>
-        )}
-      </div>
+
+          {recentRooms.length > 0 && (
+            <section className="mt-12">
+              <div className="mb-5 flex items-center justify-between gap-4">
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/35">
+                    Recent rooms
+                  </p>
+                  <h3 className="mt-2 text-xl font-semibold text-white">
+                    Continue your recent sessions
+                  </h3>
+                </div>
+                <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/40">
+                  {recentRooms.length} saved
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                {recentRooms.map((room) => (
+                  <button
+                    key={room.roomId}
+                    onClick={() => router.push(`/room/${room.roomId}`)}
+                    className="group rounded-2xl border border-white/10 bg-white/[0.03] p-5 text-left transition hover:border-blue-400/30 hover:bg-white/[0.05]"
+                  >
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <p className="truncate text-base font-medium text-white">
+                          {room.name}
+                        </p>
+                        <p className="mt-2 font-mono text-xs text-white/30">
+                          {room.roomId}
+                        </p>
+                      </div>
+
+                      <span className="rounded-full border border-white/10 bg-white/[0.05] px-3 py-1 text-xs capitalize text-white/55">
+                        {room.language}
+                      </span>
+                    </div>
+
+                    <div className="mt-5 flex items-center justify-between">
+                      <span className="text-sm text-white/35 group-hover:text-white/55">
+                        Open workspace
+                      </span>
+                      <span className="text-white/25 transition group-hover:translate-x-1 group-hover:text-white/50">
+                        →
+                      </span>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </section>
+          )}
+        </div>
+      </main>
     </div>
   );
 }
