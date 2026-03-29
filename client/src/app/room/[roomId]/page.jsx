@@ -20,12 +20,10 @@ export default function RoomPage() {
   const [error, setError] = useState('');
   const [notification, setNotification] = useState('');
 
-  // Auth guard
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
   }, [user, authLoading, router]);
 
-  // Fetch room from REST API
   useEffect(() => {
     if (!roomId) return;
 
@@ -38,7 +36,6 @@ export default function RoomPage() {
       .finally(() => setRoomLoading(false));
   }, [roomId]);
 
-  // Join the Socket.IO room once room + user are both ready
   useEffect(() => {
     if (!room || !user || !connected) return;
 
@@ -48,23 +45,21 @@ export default function RoomPage() {
     });
   }, [room, user, roomId, connected, emit]);
 
-  // Listen for live user list updates
   useEffect(() => {
     return on('room_users', (updatedUsers) => {
       setUsers(updatedUsers);
     });
   }, [on]);
 
-  // Show join/leave notifications briefly
   useEffect(() => {
     const cleanupJoin = on('user_connected', ({ username }) => {
       setNotification(`${username} joined the room`);
-      setTimeout(() => setNotification(''), 3000);
+      setTimeout(() => setNotification(''), 2500);
     });
 
     const cleanupLeft = on('user_disconnected', ({ username }) => {
       setNotification(`${username} left the room`);
-      setTimeout(() => setNotification(''), 3000);
+      setTimeout(() => setNotification(''), 2500);
     });
 
     return () => {
@@ -75,16 +70,16 @@ export default function RoomPage() {
 
   const copyRoomLink = () => {
     navigator.clipboard.writeText(window.location.href);
-    setNotification('Room link copied to clipboard!');
-    setTimeout(() => setNotification(''), 3000);
+    setNotification('Room link copied');
+    setTimeout(() => setNotification(''), 2500);
   };
 
   if (authLoading || roomLoading) {
     return (
-      <div className="min-h-screen bg-black text-white flex items-center justify-center">
+      <div className="min-h-screen bg-[#050505] text-white flex items-center justify-center">
         <div className="text-center">
-          <div className="mx-auto mb-4 h-8 w-8 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
-          <p className="text-sm text-white/45">Loading room...</p>
+          <div className="mx-auto mb-4 h-9 w-9 rounded-full border-2 border-blue-500 border-t-transparent animate-spin" />
+          <p className="text-sm text-white/45">Loading workspace...</p>
         </div>
       </div>
     );
@@ -92,7 +87,7 @@ export default function RoomPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-black text-white flex flex-col items-center justify-center gap-5 px-6">
+      <div className="min-h-screen bg-[#050505] text-white flex flex-col items-center justify-center gap-5 px-6">
         <div className="rounded-2xl border border-red-500/20 bg-red-500/10 px-5 py-4 text-sm text-red-300">
           {error}
         </div>
@@ -107,9 +102,9 @@ export default function RoomPage() {
   }
 
   return (
-    <div className="h-screen overflow-hidden bg-black text-white">
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.10),transparent_28%)] pointer-events-none" />
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.08),transparent_24%)] pointer-events-none" />
+    <div className="h-screen overflow-hidden bg-[#050505] text-white">
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(59,130,246,0.08),transparent_24%)]" />
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_bottom_right,rgba(16,185,129,0.06),transparent_20%)]" />
 
       <div className="relative flex h-full flex-col">
         <RoomHeader
@@ -119,61 +114,65 @@ export default function RoomPage() {
         />
 
         {notification && (
-          <div className="absolute left-1/2 top-20 z-50 -translate-x-1/2 rounded-xl border border-white/12 bg-zinc-900/95 px-4 py-2 text-sm text-white shadow-2xl backdrop-blur">
+          <div className="absolute left-1/2 top-20 z-50 -translate-x-1/2 rounded-xl border border-white/12 bg-zinc-900/90 px-4 py-2 text-sm text-white shadow-2xl backdrop-blur-xl">
             {notification}
           </div>
         )}
 
-        <div className="flex flex-1 overflow-hidden px-4 pb-4">
-          <div className="flex flex-1 overflow-hidden rounded-3xl border border-white/10 bg-white/[0.03] shadow-[0_0_0_1px_rgba(255,255,255,0.02)] backdrop-blur-sm">
-            {/* Main editor area */}
-            <div className="flex min-w-0 flex-1 flex-col border-r border-white/8">
-              {/* Fake tabs / top editor bar */}
-              <div className="flex items-center justify-between border-b border-white/8 bg-white/[0.02] px-5 py-3">
-                <div className="flex items-center gap-6 text-sm">
-                  <button className="border-b-2 border-blue-500 pb-3 -mb-3 font-medium text-white">
-                    main.py
+        <main className="flex flex-1 overflow-hidden px-4 pb-4">
+          <div className="flex flex-1 overflow-hidden rounded-[28px] border border-white/10 bg-[#0c0c0d] shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
+            <section className="flex min-w-0 flex-1 flex-col">
+              <div className="flex h-14 items-center justify-between border-b border-white/8 bg-[#101112] px-5">
+                <div className="flex items-center gap-5">
+                  <button className="relative text-sm font-medium text-white">
+                    main.{room?.language === 'python' ? 'py' : room?.language === 'java' ? 'java' : room?.language === 'cpp' ? 'cpp' : 'js'}
+                    <span className="absolute -bottom-[18px] left-0 h-[2px] w-full rounded-full bg-blue-500" />
                   </button>
-                  <button className="text-white/45 transition hover:text-white/70">
-                    solution.py
+
+                  <button className="text-sm text-white/35 transition hover:text-white/60">
+                    notes.md
                   </button>
-                  <button className="text-blue-500 transition hover:text-blue-400">
+
+                  <button className="text-sm text-blue-500 transition hover:text-blue-400">
                     + New file
                   </button>
                 </div>
 
-                <div className="hidden sm:flex items-center gap-3 text-xs text-white/35">
-                  <span className="rounded-full border border-emerald-500/20 bg-emerald-500/10 px-3 py-1 text-emerald-300">
+                <div className="flex items-center gap-2">
+                  <div className="rounded-full border border-emerald-500/15 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
                     {users.length} live
-                  </span>
+                  </div>
                 </div>
               </div>
 
-              {/* Monaco editor */}
               <div className="min-h-0 flex-1 bg-[#1e1e1e]">
                 <Editor
                   height="100%"
                   defaultLanguage={room?.language || 'javascript'}
-                  defaultValue={room?.code || '// Start coding here...'}
+                  defaultValue={room?.code || '// Start coding here'}
                   theme="vs-dark"
                   options={{
                     minimap: { enabled: false },
                     fontSize: 16,
-                    wordWrap: 'on',
-                    smoothScrolling: true,
+                    lineHeight: 26,
                     padding: { top: 18 },
                     scrollBeyondLastLine: false,
                     automaticLayout: true,
+                    smoothScrolling: true,
+                    wordWrap: 'on',
                     tabSize: 2,
+                    roundedSelection: true,
+                    cursorBlinking: 'smooth',
+                    overviewRulerBorder: false,
+                    hideCursorInOverviewRuler: true,
                   }}
                 />
               </div>
-            </div>
+            </section>
 
-            {/* Right sidebar */}
             <UserSidebar users={users} currentUser={user} />
           </div>
-        </div>
+        </main>
       </div>
     </div>
   );
