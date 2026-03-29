@@ -1,42 +1,130 @@
+'use client';
+
 export default function UserSidebar({ users, currentUser }) {
-    return (
-      <div className="w-52 bg-white border-l border-gray-200 flex flex-col flex-shrink-0">
-        <div className="px-3 py-3 border-b border-gray-100">
-          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">
-            In this room · {users.length}
-          </p>
-        </div>
-  
-        <div className="flex-1 p-3 space-y-1.5 overflow-y-auto">
-          {users.map((u) => {
+  return (
+    <aside className="hidden w-[320px] shrink-0 flex-col border-l border-white/8 bg-white/[0.02] lg:flex">
+      <div className="border-b border-white/8 px-6 py-6">
+        <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/30">
+          Collaborators
+        </p>
+      </div>
+
+      <div className="flex-1 overflow-y-auto px-6 py-5">
+        <div className="space-y-4">
+          {users.map((u, index) => {
             const isYou = u.username === currentUser?.username;
+            const fallbackColors = [
+              '#93C5FD',
+              '#A7F3D0',
+              '#FBCFE8',
+              '#FDE68A',
+              '#C4B5FD',
+              '#FCA5A5',
+            ];
+
             return (
-              <div key={u.socketId}
-                className={`flex items-center gap-2.5 p-2 rounded-lg ${isYou ? 'bg-blue-50' : ''}`}
-              >
+              <div key={u.socketId} className="flex items-start gap-3">
+                <div className="mt-3 h-2.5 w-2.5 rounded-full bg-emerald-400" />
+
                 <div
-                  className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold flex-shrink-0"
-                  style={{ backgroundColor: u.avatarColor || '#378ADD' }}
+                  className="flex h-12 w-12 items-center justify-center rounded-full text-sm font-semibold text-black"
+                  style={{
+                    backgroundColor:
+                      u.avatarColor ||
+                      fallbackColors[index % fallbackColors.length],
+                  }}
                 >
                   {u.username.slice(0, 2).toUpperCase()}
                 </div>
+
                 <div className="min-w-0">
-                  <p className="text-sm text-gray-800 truncate">
+                  <p className="truncate text-sm font-medium text-white">
                     {u.username}
-                    {isYou && <span className="text-xs text-gray-400 ml-1">(you)</span>}
+                    {isYou && (
+                      <span className="ml-1 text-white/45">(you)</span>
+                    )}
                   </p>
-                  <div className="flex items-center gap-1 mt-0.5">
-                    <div className="w-1.5 h-1.5 rounded-full bg-green-400"></div>
-                    <p className="text-xs text-gray-400">online</p>
-                  </div>
+
+                  <p className="mt-0.5 text-sm text-white/40">
+                    {isYou ? 'line 5, col 26' : index % 2 === 0 ? 'typing...' : 'viewing'}
+                  </p>
                 </div>
               </div>
             );
           })}
+
           {users.length === 0 && (
-            <p className="text-xs text-gray-400 text-center py-4">Connecting...</p>
+            <div className="rounded-2xl border border-white/8 bg-black/20 px-4 py-5 text-center text-sm text-white/35">
+              Connecting...
+            </div>
           )}
         </div>
+
+        {/* Chat placeholder */}
+        <div className="mt-10 border-t border-white/8 pt-8">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/30">
+            Chat
+          </p>
+
+          <div className="mt-5 space-y-5 text-sm">
+            <div>
+              <p className="text-blue-400">Priya <span className="text-white/25">2m ago</span></p>
+              <p className="mt-1 leading-7 text-white/65">
+                should we use Counter instead?
+              </p>
+            </div>
+
+            <div>
+              <p className="text-orange-400">Rahul <span className="text-white/25">1m ago</span></p>
+              <p className="mt-1 leading-7 text-white/65">
+                tuple(sorted) is cleaner for hashability
+              </p>
+            </div>
+
+            <div>
+              <p className="text-blue-400">Priya <span className="text-white/25">just now</span></p>
+              <p className="mt-1 leading-7 text-white/65">
+                agreed, adding test cases now
+              </p>
+            </div>
+          </div>
+
+          <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-white/25">
+            Message the room
+          </div>
+        </div>
+
+        {/* Version history placeholder */}
+        <div className="mt-10 border-t border-white/8 pt-8">
+          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/30">
+            Version history
+          </p>
+
+          <div className="mt-5 space-y-5 text-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex gap-3">
+                <div className="mt-1 h-3 w-3 rounded-full border-2 border-blue-500" />
+                <div>
+                  <p className="text-white/75">Just now</p>
+                  <p className="text-white/35">by Arjun</p>
+                </div>
+              </div>
+              <span className="text-blue-500">current</span>
+            </div>
+
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex gap-3">
+                <div className="mt-1 h-3 w-3 rounded-full border-2 border-white/30" />
+                <div>
+                  <p className="text-white/75">4 mins ago</p>
+                  <p className="text-white/35">by Priya</p>
+                </div>
+              </div>
+              <span className="text-blue-500">restore</span>
+            </div>
+          </div>
+        </div>
       </div>
-    );
-  }
+    </aside>
+  );
+}
