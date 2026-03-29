@@ -12,34 +12,43 @@ export default function Navbar() {
   };
 
   return (
-    <nav className="bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-      <button
-        onClick={() => router.push('/dashboard')}
-        className="flex items-center gap-2 hover:opacity-80"
-      >
-        <div className="w-2.5 h-2.5 rounded-full bg-blue-500"></div>
-        <span className="font-semibold text-gray-900">CodeSync</span>
-      </button>
+    <nav className="sticky top-0 z-50 border-b border-white/10 bg-black/80 backdrop-blur-xl">
+      <div className="mx-auto flex h-20 max-w-7xl items-center justify-between px-6">
+        <button
+          onClick={() => router.push('/dashboard')}
+          className="flex items-center gap-3 transition hover:opacity-80"
+        >
+          <div className="h-3 w-3 rounded-full bg-blue-500" />
+          <span className="text-xl font-semibold tracking-tight text-white">
+            CodeSync
+          </span>
+        </button>
 
-      {user && (
-        <div className="flex items-center gap-3">
-          <div className="flex items-center gap-2">
-            <div
-              className="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-semibold"
-              style={{ backgroundColor: user.avatarColor || '#378ADD' }}
-            >
-              {user.username.slice(0, 2).toUpperCase()}
+        {user && (
+          <div className="flex items-center gap-3">
+            <div className="hidden items-center gap-3 rounded-full border border-white/10 bg-white/[0.04] px-3 py-2 sm:flex">
+              <div
+                className="flex h-9 w-9 items-center justify-center rounded-full text-xs font-semibold text-white"
+                style={{ backgroundColor: user.avatarColor || '#378ADD' }}
+              >
+                {user.username.slice(0, 2).toUpperCase()}
+              </div>
+
+              <div className="text-left">
+                <p className="text-sm font-medium text-white">{user.username}</p>
+                <p className="text-xs text-white/35">Workspace active</p>
+              </div>
             </div>
-            <span className="text-sm text-gray-700">{user.username}</span>
+
+            <button
+              onClick={handleLogout}
+              className="rounded-xl border border-white/12 bg-transparent px-4 py-2 text-sm font-medium text-white/75 transition hover:bg-white/[0.06] hover:text-white"
+            >
+              Logout
+            </button>
           </div>
-          <button
-            onClick={handleLogout}
-            className="text-sm text-gray-500 hover:text-gray-800 transition-colors"
-          >
-            Logout
-          </button>
-        </div>
-      )}
+        )}
+      </div>
     </nav>
   );
 }
