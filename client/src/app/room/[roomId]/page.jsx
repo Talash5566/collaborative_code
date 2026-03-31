@@ -19,6 +19,7 @@ export default function RoomPage() {
   const [roomLoading, setRoomLoading] = useState(true);
   const [error, setError] = useState('');
   const [notification, setNotification] = useState('');
+  const [code, setCode] = useState('');
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
@@ -29,7 +30,10 @@ export default function RoomPage() {
 
     api
       .get(`/api/rooms/${roomId}`)
-      .then(({ data }) => setRoom(data.room))
+      .then(({ data }) => {
+        setRoom(data.room);
+        setCode(data.room.code || '// Start coding here');
+      })
       .catch(() =>
         setError('Room not found. Check the room code and try again.')
       )
@@ -48,6 +52,7 @@ export default function RoomPage() {
   useEffect(() => {
     return on('room_users', (updatedUsers) => {
       setUsers(updatedUsers);
+
     });
   }, [on]);
 
@@ -142,7 +147,8 @@ export default function RoomPage() {
                 <Editor
                   height="100%"
                   defaultLanguage={room?.language || 'javascript'}
-                  defaultValue={room?.code || '// Start coding here'}
+                  Value={code}
+                  onChange={(value) => setCode(value || '')}
                   theme="vs-dark"
                   options={{
                     minimap: { enabled: false },
