@@ -80,8 +80,7 @@ export default function RoomPage() {
       isRemoteChange.current = false;
       return;
     }
-  
-    console.log('emitting code_change:', debouncedCode);
+
   
     emit('code_change', {
       roomId,
