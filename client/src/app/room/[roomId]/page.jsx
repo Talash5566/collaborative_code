@@ -129,13 +129,6 @@ export default function RoomPage() {
                     <span className="absolute -bottom-[18px] left-0 h-[2px] w-full rounded-full bg-blue-500" />
                   </button>
 
-                  <button className="text-sm text-white/35 transition hover:text-white/60">
-                    notes.md
-                  </button>
-
-                  <button className="text-sm text-blue-500 transition hover:text-blue-400">
-                    + New file
-                  </button>
                 </div>
 
                 <div className="flex items-center gap-2">
