@@ -7,7 +7,7 @@ import api from '@/lib/api';
 import UserSidebar from '@/components/room/UserSidebar';
 import RoomHeader from '@/components/room/RoomHeader';
 import Editor from '@monaco-editor/react';
-
+import useDebounce from '@/hooks/useDebounce';
 export default function RoomPage() {
   const { roomId } = useParams();
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function RoomPage() {
   const [error, setError] = useState('');
   const [notification, setNotification] = useState('');
   const [code, setCode] = useState('');
-
+  const debouncedCode = useDebounce(code, 50);
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
   }, [user, authLoading, router]);
@@ -147,7 +147,7 @@ export default function RoomPage() {
                 <Editor
                   height="100%"
                   defaultLanguage={room?.language || 'javascript'}
-                  Value={code}
+                  value={code}
                   onChange={(value) => setCode(value || '')}
                   theme="vs-dark"
                   options={{
