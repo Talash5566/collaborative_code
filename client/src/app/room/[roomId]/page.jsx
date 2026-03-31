@@ -73,6 +73,18 @@ export default function RoomPage() {
     };
   }, [on]);
 
+  useEffect(() => {
+    if (!connected || !roomId) return;
+    if (debouncedCode === '') return;
+  
+    console.log('emitting code_change:', debouncedCode);
+  
+    emit('code_change', {
+      roomId,
+      code: debouncedCode,
+    });
+  }, [debouncedCode, connected, roomId, emit]);
+
   const copyRoomLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setNotification('Room link copied');
