@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState } from 'react';
+import { useEffect, useState , useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/hooks/useSocket';
@@ -13,7 +13,7 @@ export default function RoomPage() {
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
   const { emit, on, connected } = useSocket();
-
+  const isRemoteChange = useRef(false);
   const [room, setRoom] = useState(null);
   const [users, setUsers] = useState([]);
   const [roomLoading, setRoomLoading] = useState(true);
@@ -76,6 +76,10 @@ export default function RoomPage() {
   useEffect(() => {
     if (!connected || !roomId) return;
     if (debouncedCode === '') return;
+    if (isRemoteChange.current) {
+      isRemoteChange.current = false;
+      return;
+    }
   
     console.log('emitting code_change:', debouncedCode);
   
