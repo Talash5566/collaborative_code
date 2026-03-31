@@ -50,44 +50,6 @@ export default function UserSidebar({ users, currentUser }) {
           )}
         </div>
 
-        <div className="mt-10 border-t border-white/8 pt-8">
-          <p className="text-xs font-medium uppercase tracking-[0.18em] text-white/30">
-            Chat
-          </p>
-
-          <div className="mt-5 space-y-5 text-sm">
-            <div>
-              <p className="text-blue-400">
-                Priya <span className="text-white/25">2m ago</span>
-              </p>
-              <p className="mt-1 leading-7 text-white/65">
-                should we use Counter instead?
-              </p>
-            </div>
-
-            <div>
-              <p className="text-orange-400">
-                Rahul <span className="text-white/25">1m ago</span>
-              </p>
-              <p className="mt-1 leading-7 text-white/65">
-                tuple(sorted) is cleaner for hashability
-              </p>
-            </div>
-
-            <div>
-              <p className="text-blue-400">
-                Priya <span className="text-white/25">just now</span>
-              </p>
-              <p className="mt-1 leading-7 text-white/65">
-                agreed, adding test cases now
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 px-4 py-4 text-white/25">
-            Message the room
-          </div>
-        </div>
       </div>
     </aside>
   );
