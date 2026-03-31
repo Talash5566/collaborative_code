@@ -89,6 +89,15 @@ export default function RoomPage() {
     });
   }, [debouncedCode, connected, roomId, emit]);
 
+  useEffect(() => {
+    const cleanup = on('code_update', (incomingCode) => {
+      isRemoteChange.current = true;
+      setCode(incomingCode);
+    });
+  
+    return cleanup;
+  }, [on]);
+
   const copyRoomLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setNotification('Room link copied');
