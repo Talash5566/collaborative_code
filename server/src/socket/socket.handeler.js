@@ -105,6 +105,12 @@ function roomHandler(io) {
                 console.log('disconnect error:', error.message);
             }
         });
+
+        socket.on('code_change', ({ roomId, code }) => {
+            console.log('Code change received from:', socket.id);
+        
+            socket.to(roomId).emit('code_update', code);
+        });
     });
 }
 
