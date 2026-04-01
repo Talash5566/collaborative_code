@@ -1,5 +1,5 @@
 'use client';
-import { useEffect, useState , useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/hooks/useSocket';
@@ -20,8 +20,11 @@ export default function RoomPage() {
   const [error, setError] = useState('');
   const [notification, setNotification] = useState('');
   const [code, setCode] = useState('');
+  const [cursorPosition, setCursorPosition] = useState(null);
+  const [remoteCursors, setRemoteCursors] = useState({});
   const debouncedCode = useDebounce(code, 50);
   const editorRef = useRef(null);
+  const monacoRef = useRef(null);
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
   }, [user, authLoading, router]);
@@ -82,7 +85,7 @@ export default function RoomPage() {
       return;
     }
 
-  
+
     emit('code_change', {
       roomId,
       code: debouncedCode,
@@ -92,33 +95,44 @@ export default function RoomPage() {
   useEffect(() => {
     const cleanup = on('code_update', (incomingCode) => {
       if (!editorRef.current) return;
-  
+
       const editor = editorRef.current;
-  
+
       const position = editor.getPosition(); // save cursor
-  
+
       isRemoteChange.current = true;
       setCode(incomingCode);
-  
+
       setTimeout(() => {
         editor.setPosition(position); // restore cursor
       }, 0);
     });
-  
+
     return cleanup;
   }, [on]);
 
   useEffect(() => {
     const cleanup = on('load_room_data', (data) => {
       console.log('Initial room data:', data);
-  
+
       isRemoteChange.current = true;
       setCode(data.code || '// Start coding here...');
     });
-  
+
     return cleanup;
   }, [on]);
+
+  useEffect(() => {
+    if (!connected || !roomId || !user || !cursorPosition) return;
   
+    emit('cursor_move', {
+      roomId,
+      username: user.username,
+      lineNumber: cursorPosition.lineNumber,
+      column: cursorPosition.column,
+    });
+  }, [cursorPosition, connected, roomId, user, emit]);
+
 
   const copyRoomLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -196,8 +210,18 @@ export default function RoomPage() {
                   defaultLanguage={room?.language || 'javascript'}
                   value={code}
                   onChange={(value) => setCode(value || '')}
-                  onMount={(editor)=>{
-                    editorRef.current = editor
+                  onMount={(editor, monaco) => {
+                    editorRef.current = editor;
+                    monacoRef.current = monaco;
+
+                    editor.onDidChangeCursorPosition((e) => {
+                      setCursorPosition(
+                        {
+                          lineNumber: e.position.lineNumber,
+                          column: e.position.column
+                        }
+                      )
+                    })
                   }}
                   theme="vs-dark"
                   options={{
