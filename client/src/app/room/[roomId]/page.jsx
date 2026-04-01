@@ -21,6 +21,7 @@ export default function RoomPage() {
   const [notification, setNotification] = useState('');
   const [code, setCode] = useState('');
   const debouncedCode = useDebounce(code, 50);
+  const editorRef = useRef(null);
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
   }, [user, authLoading, router]);
@@ -90,8 +91,18 @@ export default function RoomPage() {
 
   useEffect(() => {
     const cleanup = on('code_update', (incomingCode) => {
+      if (!editorRef.current) return;
+  
+      const editor = editorRef.current;
+  
+      const position = editor.getPosition(); // save cursor
+  
       isRemoteChange.current = true;
       setCode(incomingCode);
+  
+      setTimeout(() => {
+        editor.setPosition(position); // restore cursor
+      }, 0);
     });
   
     return cleanup;
@@ -173,6 +184,9 @@ export default function RoomPage() {
                   defaultLanguage={room?.language || 'javascript'}
                   value={code}
                   onChange={(value) => setCode(value || '')}
+                  onMount={(editor)=>{
+                    editorRef.current = editor
+                  }}
                   theme="vs-dark"
                   options={{
                     minimap: { enabled: false },
