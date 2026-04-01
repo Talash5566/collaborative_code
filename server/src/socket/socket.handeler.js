@@ -65,8 +65,10 @@ function roomHandler(io) {
 
         socket.on('code_change', async ({ roomId, code }) => {
             try {
-                socket.to(roomId).emit('receive_code_change', { code });
-
+                // send to others
+                socket.to(roomId).emit('code_update', code);
+        
+                // save to DB
                 await Room.findOneAndUpdate(
                     { roomId },
                     { code },
@@ -104,12 +106,6 @@ function roomHandler(io) {
             } catch (error) {
                 console.log('disconnect error:', error.message);
             }
-        });
-
-        socket.on('code_change', ({ roomId, code }) => {
-            
-        
-            socket.to(roomId).emit('code_update', code);
         });
     });
 }

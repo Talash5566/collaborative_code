@@ -108,6 +108,18 @@ export default function RoomPage() {
     return cleanup;
   }, [on]);
 
+  useEffect(() => {
+    const cleanup = on('load_room_data', (data) => {
+      console.log('Initial room data:', data);
+  
+      isRemoteChange.current = true;
+      setCode(data.code || '// Start coding here...');
+    });
+  
+    return cleanup;
+  }, [on]);
+  
+
   const copyRoomLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setNotification('Room link copied');
