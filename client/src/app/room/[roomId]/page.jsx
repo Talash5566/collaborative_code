@@ -23,7 +23,8 @@ export default function RoomPage() {
   const [code, setCode] = useState('');
   const [cursorPosition, setCursorPosition] = useState(null);
   const [remoteCursors, setRemoteCursors] = useState({});
-  const debouncedCode = useDebounce(code, 50);
+  const debouncedCode = useDebounce(code, 300);
+  const decorationIdsRef = useRef([]);
   const editorRef = useRef(null);
   const monacoRef = useRef(null);
   useEffect(() => {
@@ -156,7 +157,7 @@ export default function RoomPage() {
         cursor.lineNumber,
         cursor.column,
         cursor.lineNumber,
-        cursor.column + 1
+        cursor.column
       ),
       options: {
         className: 'remote-cursor',
@@ -167,8 +168,23 @@ export default function RoomPage() {
       },
     }));
   
-    editor.deltaDecorations([], decorations);
+    decorationIdsRef.current = editor.deltaDecorations(
+      decorationIdsRef.current,
+      decorations
+    );
   }, [remoteCursors]);
+
+  useEffect(() => {
+    const cleanup = on('user_disconnected', ({ socketId }) => {
+      setRemoteCursors((prev) => {
+        const updated = { ...prev };
+        delete updated[socketId];
+        return updated;
+      });
+    });
+  
+    return cleanup;
+  }, [on]);
 
 
   const copyRoomLink = () => {
