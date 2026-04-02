@@ -4,6 +4,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/hooks/useSocket';
 import api from '@/lib/api';
+import '../../globals.css'
 import UserSidebar from '@/components/room/UserSidebar';
 import RoomHeader from '@/components/room/RoomHeader';
 import Editor from '@monaco-editor/react';
@@ -143,6 +144,31 @@ export default function RoomPage() {
   
     return cleanup;
   }, [on]);
+
+  useEffect(() => {
+    if (!editorRef.current || !monacoRef.current) return;
+  
+    const editor = editorRef.current;
+    const monaco = monacoRef.current;
+  
+    const decorations = Object.values(remoteCursors).map((cursor) => ({
+      range: new monaco.Range(
+        cursor.lineNumber,
+        cursor.column,
+        cursor.lineNumber,
+        cursor.column + 1
+      ),
+      options: {
+        className: 'remote-cursor',
+        after: {
+          content: cursor.username,
+          inlineClassName: 'remote-cursor-label',
+        },
+      },
+    }));
+  
+    editor.deltaDecorations([], decorations);
+  }, [remoteCursors]);
 
 
   const copyRoomLink = () => {
