@@ -133,6 +133,17 @@ export default function RoomPage() {
     });
   }, [cursorPosition, connected, roomId, user, emit]);
 
+  useEffect(() => {
+    const cleanup = on('cursor_update', (cursorData) => {
+      setRemoteCursors((prev) => ({
+        ...prev,
+        [cursorData.socketId]: cursorData,
+      }));
+    });
+  
+    return cleanup;
+  }, [on]);
+
 
   const copyRoomLink = () => {
     navigator.clipboard.writeText(window.location.href);
