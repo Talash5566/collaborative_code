@@ -108,14 +108,7 @@ function roomHandler(io) {
             }
         });
 
-        socket.on('cursor_move', ({ roomId, username, lineNumber, column }) => {
-            socket.to(roomId).emit('cursor_update', {
-                socketId: socket.id,
-                username,
-                lineNumber,
-                column,
-            });
-        });
+       
         
     });
 }

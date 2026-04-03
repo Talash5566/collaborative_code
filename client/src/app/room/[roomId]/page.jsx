@@ -17,8 +17,7 @@ export default function RoomPage() {
 
   const isRemoteChange = useRef(false);
   const editorRef = useRef(null);
-  const monacoRef = useRef(null);
-  const decorationIdsRef = useRef([]);
+
 
   const [room, setRoom] = useState(null);
   const [users, setUsers] = useState([]);
@@ -26,10 +25,9 @@ export default function RoomPage() {
   const [error, setError] = useState('');
   const [notification, setNotification] = useState('');
   const [code, setCode] = useState('');
-  const [cursorPosition, setCursorPosition] = useState(null);
-  const [remoteCursors, setRemoteCursors] = useState({});
 
-  const debouncedCode = useDebounce(code, 300);
+
+  const debouncedCode = useDebounce(code, 50);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
@@ -110,23 +108,6 @@ export default function RoomPage() {
     });
   }, [debouncedCode, connected, roomId, emit]);
 
-  useEffect(() => {
-    const cleanup = on('code_update', (incomingCode) => {
-      if (!editorRef.current) return;
-
-      const editor = editorRef.current;
-      const position = editor.getPosition();
-
-      isRemoteChange.current = true;
-      setCode(incomingCode);
-
-      setTimeout(() => {
-        if (position) editor.setPosition(position);
-      }, 0);
-    });
-
-    return cleanup;
-  }, [on]);
 
   useEffect(() => {
     const cleanup = on('load_room_data', (data) => {
@@ -137,16 +118,7 @@ export default function RoomPage() {
     return cleanup;
   }, [on]);
 
-  useEffect(() => {
-    if (!connected || !roomId || !user || !cursorPosition) return;
 
-    emit('cursor_move', {
-      roomId,
-      username: user.username,
-      lineNumber: cursorPosition.lineNumber,
-      column: cursorPosition.column,
-    });
-  }, [cursorPosition, connected, roomId, user, emit]);
 
   useEffect(() => {
     const cleanup = on('cursor_update', (cursorData) => {
@@ -163,52 +135,6 @@ export default function RoomPage() {
     return cleanup;
   }, [on, socketRef, user]);
 
-  useEffect(() => {
-    const cleanup = on('user_disconnected', ({ socketId }) => {
-      setRemoteCursors((prev) => {
-        const updated = { ...prev };
-        delete updated[socketId];
-        return updated;
-      });
-    });
-
-    return cleanup;
-  }, [on]);
-
-  useEffect(() => {
-    if (!editorRef.current || !monacoRef.current) return;
-
-    const editor = editorRef.current;
-    const monaco = monacoRef.current;
-
-    const remoteOnly = Object.values(remoteCursors).filter((cursor) => {
-      return (
-        cursor.socketId !== socketRef.current?.id &&
-        cursor.username !== user?.username
-      );
-    });
-
-    const decorations = remoteOnly.map((cursor) => ({
-      range: new monaco.Range(
-        cursor.lineNumber,
-        cursor.column,
-        cursor.lineNumber,
-        cursor.column
-      ),
-      options: {
-        className: 'remote-cursor',
-        after: {
-          content: cursor.username,
-          inlineClassName: 'remote-cursor-label',
-        },
-      },
-    }));
-
-    decorationIdsRef.current = editor.deltaDecorations(
-      decorationIdsRef.current,
-      decorations
-    );
-  }, [remoteCursors, socketRef, user]);
 
   const copyRoomLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -292,16 +218,8 @@ export default function RoomPage() {
                   language={room?.language || 'javascript'}
                   value={code}
                   onChange={(value) => setCode(value || '')}
-                  onMount={(editor, monaco) => {
+                  onMount={(editor) => {
                     editorRef.current = editor;
-                    monacoRef.current = monaco;
-
-                    editor.onDidChangeCursorPosition((e) => {
-                      setCursorPosition({
-                        lineNumber: e.position.lineNumber,
-                        column: e.position.column,
-                      });
-                    });
                   }}
                   theme="vs-dark"
                   options={{
