@@ -4,17 +4,22 @@ import { useParams, useRouter } from 'next/navigation';
 import { useAuth } from '@/context/AuthContext';
 import { useSocket } from '@/hooks/useSocket';
 import api from '@/lib/api';
-import '../../globals.css'
 import UserSidebar from '@/components/room/UserSidebar';
 import RoomHeader from '@/components/room/RoomHeader';
 import Editor from '@monaco-editor/react';
 import useDebounce from '@/hooks/useDebounce';
+
 export default function RoomPage() {
   const { roomId } = useParams();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { emit, on, connected } = useSocket();
+  const { emit, on, connected, socketRef } = useSocket();
+
   const isRemoteChange = useRef(false);
+  const editorRef = useRef(null);
+  const monacoRef = useRef(null);
+  const decorationIdsRef = useRef([]);
+
   const [room, setRoom] = useState(null);
   const [users, setUsers] = useState([]);
   const [roomLoading, setRoomLoading] = useState(true);
@@ -23,10 +28,9 @@ export default function RoomPage() {
   const [code, setCode] = useState('');
   const [cursorPosition, setCursorPosition] = useState(null);
   const [remoteCursors, setRemoteCursors] = useState({});
+
   const debouncedCode = useDebounce(code, 300);
-  const decorationIdsRef = useRef([]);
-  const editorRef = useRef(null);
-  const monacoRef = useRef(null);
+
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
   }, [user, authLoading, router]);
@@ -59,6 +63,18 @@ export default function RoomPage() {
     return on('room_users', (updatedUsers) => {
       setUsers(updatedUsers);
 
+      // keep only active users' cursors
+      const activeSocketIds = new Set(updatedUsers.map((u) => u.socketId));
+
+      setRemoteCursors((prev) => {
+        const filtered = {};
+        for (const [socketId, cursor] of Object.entries(prev)) {
+          if (activeSocketIds.has(socketId)) {
+            filtered[socketId] = cursor;
+          }
+        }
+        return filtered;
+      });
     });
   }, [on]);
 
@@ -82,11 +98,11 @@ export default function RoomPage() {
   useEffect(() => {
     if (!connected || !roomId) return;
     if (debouncedCode === '') return;
+
     if (isRemoteChange.current) {
       isRemoteChange.current = false;
       return;
     }
-
 
     emit('code_change', {
       roomId,
@@ -99,14 +115,13 @@ export default function RoomPage() {
       if (!editorRef.current) return;
 
       const editor = editorRef.current;
-
-      const position = editor.getPosition(); // save cursor
+      const position = editor.getPosition();
 
       isRemoteChange.current = true;
       setCode(incomingCode);
 
       setTimeout(() => {
-        editor.setPosition(position); // restore cursor
+        if (position) editor.setPosition(position);
       }, 0);
     });
 
@@ -115,8 +130,6 @@ export default function RoomPage() {
 
   useEffect(() => {
     const cleanup = on('load_room_data', (data) => {
-      console.log('Initial room data:', data);
-
       isRemoteChange.current = true;
       setCode(data.code || '// Start coding here...');
     });
@@ -126,7 +139,7 @@ export default function RoomPage() {
 
   useEffect(() => {
     if (!connected || !roomId || !user || !cursorPosition) return;
-  
+
     emit('cursor_move', {
       roomId,
       username: user.username,
@@ -137,22 +150,45 @@ export default function RoomPage() {
 
   useEffect(() => {
     const cleanup = on('cursor_update', (cursorData) => {
+      // never store your own cursor as remote
+      if (cursorData.socketId === socketRef.current?.id) return;
+      if (cursorData.username === user?.username) return;
+
       setRemoteCursors((prev) => ({
         ...prev,
         [cursorData.socketId]: cursorData,
       }));
     });
-  
+
+    return cleanup;
+  }, [on, socketRef, user]);
+
+  useEffect(() => {
+    const cleanup = on('user_disconnected', ({ socketId }) => {
+      setRemoteCursors((prev) => {
+        const updated = { ...prev };
+        delete updated[socketId];
+        return updated;
+      });
+    });
+
     return cleanup;
   }, [on]);
 
   useEffect(() => {
     if (!editorRef.current || !monacoRef.current) return;
-  
+
     const editor = editorRef.current;
     const monaco = monacoRef.current;
-  
-    const decorations = Object.values(remoteCursors).map((cursor) => ({
+
+    const remoteOnly = Object.values(remoteCursors).filter((cursor) => {
+      return (
+        cursor.socketId !== socketRef.current?.id &&
+        cursor.username !== user?.username
+      );
+    });
+
+    const decorations = remoteOnly.map((cursor) => ({
       range: new monaco.Range(
         cursor.lineNumber,
         cursor.column,
@@ -167,25 +203,12 @@ export default function RoomPage() {
         },
       },
     }));
-  
+
     decorationIdsRef.current = editor.deltaDecorations(
       decorationIdsRef.current,
       decorations
     );
-  }, [remoteCursors]);
-
-  useEffect(() => {
-    const cleanup = on('user_disconnected', ({ socketId }) => {
-      setRemoteCursors((prev) => {
-        const updated = { ...prev };
-        delete updated[socketId];
-        return updated;
-      });
-    });
-  
-    return cleanup;
-  }, [on]);
-
+  }, [remoteCursors, socketRef, user]);
 
   const copyRoomLink = () => {
     navigator.clipboard.writeText(window.location.href);
@@ -244,10 +267,16 @@ export default function RoomPage() {
               <div className="flex h-14 items-center justify-between border-b border-white/8 bg-[#101112] px-5">
                 <div className="flex items-center gap-5">
                   <button className="relative text-sm font-medium text-white">
-                    main.{room?.language === 'python' ? 'py' : room?.language === 'java' ? 'java' : room?.language === 'cpp' ? 'cpp' : 'js'}
+                    main.
+                    {room?.language === 'python'
+                      ? 'py'
+                      : room?.language === 'java'
+                      ? 'java'
+                      : room?.language === 'cpp'
+                      ? 'cpp'
+                      : 'js'}
                     <span className="absolute -bottom-[18px] left-0 h-[2px] w-full rounded-full bg-blue-500" />
                   </button>
-
                 </div>
 
                 <div className="flex items-center gap-2">
@@ -260,7 +289,7 @@ export default function RoomPage() {
               <div className="min-h-0 flex-1 bg-[#1e1e1e]">
                 <Editor
                   height="100%"
-                  defaultLanguage={room?.language || 'javascript'}
+                  language={room?.language || 'javascript'}
                   value={code}
                   onChange={(value) => setCode(value || '')}
                   onMount={(editor, monaco) => {
@@ -268,13 +297,11 @@ export default function RoomPage() {
                     monacoRef.current = monaco;
 
                     editor.onDidChangeCursorPosition((e) => {
-                      setCursorPosition(
-                        {
-                          lineNumber: e.position.lineNumber,
-                          column: e.position.column
-                        }
-                      )
-                    })
+                      setCursorPosition({
+                        lineNumber: e.position.lineNumber,
+                        column: e.position.column,
+                      });
+                    });
                   }}
                   theme="vs-dark"
                   options={{
