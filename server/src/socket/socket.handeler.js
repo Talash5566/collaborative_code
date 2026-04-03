@@ -1,5 +1,5 @@
 const Room = require('../models/Room')
-
+const Message = require('../models/Message')
 const roomUsers = new Map();
 
 function roomHandler(io) {
@@ -105,6 +105,26 @@ function roomHandler(io) {
                 console.log('User disconnected:', socket.id);
             } catch (error) {
                 console.log('disconnect error:', error.message);
+            }
+        });
+
+        socket.on('chat_message', async ({ roomId, text, username, avatarColor }) => {
+            try {
+                if (!text || !roomId) return;
+        
+                // 1. Save to DB
+                const message = await Message.create({
+                    roomId,
+                    username,
+                    avatarColor,
+                    text,
+                });
+        
+                // 2. Send to ALL users in room
+                io.to(roomId).emit('chat_message', message);
+        
+            } catch (error) {
+                console.log('chat_message error:', error.message);
             }
         });
 
