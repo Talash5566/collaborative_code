@@ -1,5 +1,5 @@
 'use client';
-
+import { useEffect, useRef } from 'react';
 export default function UserSidebar({
   users,
   currentUser,
@@ -17,6 +17,10 @@ export default function UserSidebar({
     '#FCA5A5',
   ];
 
+  const bottomRef = useRef(null);
+  useEffect(() => {
+    bottomRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages]);
   return (
     <aside className="hidden w-[320px] shrink-0 border-l border-white/8 bg-[#0f1011] lg:flex lg:flex-col">
       <div className="border-b border-white/8 px-6 py-6">
@@ -105,6 +109,7 @@ export default function UserSidebar({
               No messages yet
             </div>
           )}
+          <div ref={bottomRef} />
         </div>
 
         <div className="mt-4 flex gap-2">
