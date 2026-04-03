@@ -24,8 +24,30 @@ export default function RoomPage() {
   const [error, setError] = useState('');
   const [notification, setNotification] = useState('');
   const [code, setCode] = useState('');
-
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState('');
   const debouncedCode = useDebounce(code, 50);
+
+  const sendMessage = () =>{
+    if(!input.trim()) return ;
+
+    emit('chat_message',{
+    roomId,
+    text: input,
+    username: user?.username || 'Anonymous',
+    avatarColor: '#22c55e',
+    });
+
+    setInput('');
+  }
+
+  useEffect(() => {
+    const off = on('chat_message', (message) => {
+      setMessages((prev) => [...prev, message]);
+    });
+  
+    return off;
+  }, []);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
@@ -225,7 +247,14 @@ export default function RoomPage() {
               </div>
             </section>
 
-            <UserSidebar users={users} currentUser={user} />
+            <UserSidebar
+              users={users}
+              currentUser={user}
+              messages={messages}
+              input={input}
+              setInput={setInput}
+              sendMessage={sendMessage}
+            />
           </div>
         </main>
       </div>
