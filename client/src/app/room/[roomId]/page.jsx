@@ -25,7 +25,7 @@ export default function RoomPage() {
   const [notification, setNotification] = useState('');
   const [code, setCode] = useState('');
 
-  const debouncedCode = useDebounce(code, 300);
+  const debouncedCode = useDebounce(code, 50);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
