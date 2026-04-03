@@ -13,11 +13,10 @@ export default function RoomPage() {
   const { roomId } = useParams();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { emit, on, connected, socketRef } = useSocket();
+  const { emit, on, connected } = useSocket();
 
   const isRemoteChange = useRef(false);
   const editorRef = useRef(null);
-
 
   const [room, setRoom] = useState(null);
   const [users, setUsers] = useState([]);
@@ -26,8 +25,7 @@ export default function RoomPage() {
   const [notification, setNotification] = useState('');
   const [code, setCode] = useState('');
 
-
-  const debouncedCode = useDebounce(code, 50);
+  const debouncedCode = useDebounce(code, 300);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
@@ -60,19 +58,6 @@ export default function RoomPage() {
   useEffect(() => {
     return on('room_users', (updatedUsers) => {
       setUsers(updatedUsers);
-
-      // keep only active users' cursors
-      const activeSocketIds = new Set(updatedUsers.map((u) => u.socketId));
-
-      setRemoteCursors((prev) => {
-        const filtered = {};
-        for (const [socketId, cursor] of Object.entries(prev)) {
-          if (activeSocketIds.has(socketId)) {
-            filtered[socketId] = cursor;
-          }
-        }
-        return filtered;
-      });
     });
   }, [on]);
 
@@ -108,6 +93,23 @@ export default function RoomPage() {
     });
   }, [debouncedCode, connected, roomId, emit]);
 
+  useEffect(() => {
+    const cleanup = on('code_update', (incomingCode) => {
+      if (!editorRef.current) return;
+
+      const editor = editorRef.current;
+      const position = editor.getPosition();
+
+      isRemoteChange.current = true;
+      setCode(incomingCode);
+
+      setTimeout(() => {
+        if (position) editor.setPosition(position);
+      }, 0);
+    });
+
+    return cleanup;
+  }, [on]);
 
   useEffect(() => {
     const cleanup = on('load_room_data', (data) => {
@@ -117,24 +119,6 @@ export default function RoomPage() {
 
     return cleanup;
   }, [on]);
-
-
-
-  useEffect(() => {
-    const cleanup = on('cursor_update', (cursorData) => {
-      // never store your own cursor as remote
-      if (cursorData.socketId === socketRef.current?.id) return;
-      if (cursorData.username === user?.username) return;
-
-      setRemoteCursors((prev) => ({
-        ...prev,
-        [cursorData.socketId]: cursorData,
-      }));
-    });
-
-    return cleanup;
-  }, [on, socketRef, user]);
-
 
   const copyRoomLink = () => {
     navigator.clipboard.writeText(window.location.href);
