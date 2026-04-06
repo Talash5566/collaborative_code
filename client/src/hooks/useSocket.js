@@ -7,6 +7,7 @@ const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL;
 export const useSocket = () => {
   const socketRef = useRef(null);
   const [connected, setConnected] = useState(false);
+  const [reconnecting, setReconnecting] = useState(false);
 
   useEffect(() => {
     socketRef.current = io(SOCKET_URL, {
@@ -15,12 +16,13 @@ export const useSocket = () => {
     });
 
     socketRef.current.on('connect', () => {
-      console.log('socket connected:');
-      setConnected(true); 
+      setConnected(true);
+      setReconnecting(false);
     });
-
+    
     socketRef.current.on('disconnect', () => {
       setConnected(false);
+      setReconnecting(true);
     });
 
     return () => {
@@ -37,5 +39,5 @@ export const useSocket = () => {
     return () => socketRef.current?.off(event, handler);
   }, []);
 
-  return { socketRef, emit, on, connected };
+  return { socketRef, emit, on, connected, reconnecting };
 };

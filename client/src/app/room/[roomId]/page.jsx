@@ -13,7 +13,7 @@ export default function RoomPage() {
   const { roomId } = useParams();
   const router = useRouter();
   const { user, loading: authLoading } = useAuth();
-  const { emit, on, connected } = useSocket();
+  const { emit, on, connected, reconnecting } = useSocket();
 
   const isRemoteChange = useRef(false);
   const editorRef = useRef(null);
@@ -28,14 +28,14 @@ export default function RoomPage() {
   const [input, setInput] = useState('');
   const debouncedCode = useDebounce(code, 50);
 
-  const sendMessage = () =>{
-    if(!input.trim()) return ;
+  const sendMessage = () => {
+    if (!input.trim()) return;
 
-    emit('chat_message',{
-    roomId,
-    text: input,
-    username: user?.username || 'Anonymous',
-    avatarColor: '#22c55e',
+    emit('chat_message', {
+      roomId,
+      text: input,
+      username: user?.username || 'Anonymous',
+      avatarColor: '#22c55e',
     });
 
     setInput('');
@@ -45,7 +45,7 @@ export default function RoomPage() {
     const off = on('chat_message', (message) => {
       setMessages((prev) => [...prev, message]);
     });
-  
+
     return off;
   }, []);
 
@@ -146,7 +146,7 @@ export default function RoomPage() {
     const cleanup = on('chat_history', ({ messages }) => {
       setMessages(messages);
     });
-  
+
     return cleanup;
   }, [on]);
 
@@ -195,6 +195,12 @@ export default function RoomPage() {
           usersCount={users.length}
         />
 
+        {reconnecting && (
+          <div className="absolute left-1/2 top-20 z-50 -translate-x-1/2 rounded-xl border border-amber-500/20 bg-amber-500/10 px-4 py-2 text-sm text-amber-300 shadow-xl backdrop-blur-xl">
+            Reconnecting...
+          </div>
+        )}
+
         {notification && (
           <div className="absolute left-1/2 top-20 z-50 -translate-x-1/2 rounded-xl border border-white/12 bg-zinc-900/90 px-4 py-2 text-sm text-white shadow-2xl backdrop-blur-xl">
             {notification}
@@ -211,10 +217,10 @@ export default function RoomPage() {
                     {room?.language === 'python'
                       ? 'py'
                       : room?.language === 'java'
-                      ? 'java'
-                      : room?.language === 'cpp'
-                      ? 'cpp'
-                      : 'js'}
+                        ? 'java'
+                        : room?.language === 'cpp'
+                          ? 'cpp'
+                          : 'js'}
                     <span className="absolute -bottom-[18px] left-0 h-[2px] w-full rounded-full bg-blue-500" />
                   </button>
                 </div>
