@@ -54,6 +54,16 @@ function roomHandler(io) {
                 });
 
                 console.log(`${socket.username} joined room ${roomId}`);
+                //  SEND CHAT HISTORY
+                const messages = await Message.find({ roomId })
+                    .sort({ createdAt: -1 })
+                    .limit(50)
+                    .lean();
+
+                // reverse so oldest → newest
+                socket.emit('chat_history', {
+                    messages: messages.reverse(),
+                });
             } catch (error) {
                 console.log('join_room error:', error.message);
 
@@ -67,7 +77,7 @@ function roomHandler(io) {
             try {
                 // send to others
                 socket.to(roomId).emit('code_update', code);
-        
+
                 // save to DB
                 await Room.findOneAndUpdate(
                     { roomId },
@@ -111,7 +121,7 @@ function roomHandler(io) {
         socket.on('chat_message', async ({ roomId, text, username, avatarColor }) => {
             try {
                 if (!text || !roomId) return;
-        
+
                 // 1. Save to DB
                 const message = await Message.create({
                     roomId,
@@ -119,17 +129,17 @@ function roomHandler(io) {
                     avatarColor,
                     text,
                 });
-        
+
                 // 2. Send to ALL users in room
                 io.to(roomId).emit('chat_message', message);
-        
+
             } catch (error) {
                 console.log('chat_message error:', error.message);
             }
         });
 
-       
-        
+
+
     });
 }
 

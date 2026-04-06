@@ -142,6 +142,14 @@ export default function RoomPage() {
     return cleanup;
   }, [on]);
 
+  useEffect(() => {
+    const cleanup = on('chat_history', ({ messages }) => {
+      setMessages(messages);
+    });
+  
+    return cleanup;
+  }, [on]);
+
   const copyRoomLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setNotification('Room link copied');
