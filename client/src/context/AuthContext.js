@@ -1,6 +1,6 @@
 'use client';
 import { createContext, useContext, useState, useEffect } from 'react';
-import { getUser, setUser, clearUser } from '@/lib/auth';
+import { setUser, clearUser } from '@/lib/auth';
 import api from '@/lib/api';
 
 const AuthContext = createContext(null);
@@ -10,9 +10,23 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const stored = getUser();
-    if (stored) setUserState(stored);
-    setLoading(false);
+    const checkAuth = async () => {
+      try {
+        const { data } = await api.get('/api/auth/get-me');
+  
+        if (data && data.user) {
+          setUserState(data.user);
+        } else {
+          setUserState(null);
+        }
+      } catch (error) {
+        setUserState(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+  
+    checkAuth();
   }, []);
 
   const login = async (email, password) => {
