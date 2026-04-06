@@ -102,12 +102,16 @@ async function loginUser(req, res) {
 }
 
 function logoutUser(req, res) {
-
-    res.clearCookie("token")
+    res.clearCookie('token', {
+        httpOnly: true,
+        secure: true,
+        sameSite: 'none',
+        path: '/',
+    });
 
     res.json({
-        message: "Logged out successfully"
-    })
+        message: 'Logged out successfully'
+    });
 }
 
 async function getme(req, res) {
