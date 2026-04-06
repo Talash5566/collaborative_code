@@ -18,15 +18,41 @@ export default function DashboardPage() {
   const [recentRooms, setRecentRooms] = useState([]);
   const [error, setError] = useState('');
 
-  // Redirect if not logged in
   useEffect(() => {
     if (!loading && !user) router.push('/login');
   }, [user, loading, router]);
 
-  // Load recent rooms from localStorage (simple approach for Phase 1)
   useEffect(() => {
-    const stored = localStorage.getItem('cs_recent_rooms');
-    if (stored) setRecentRooms(JSON.parse(stored));
+    const loadRecentRooms = async () => {
+      const stored = localStorage.getItem('cs_recent_rooms');
+      if (!stored) return;
+
+      try {
+        const parsedRooms = JSON.parse(stored);
+
+        const checkedRooms = await Promise.all(
+          parsedRooms.map(async (room) => {
+            try {
+              await api.get(`/api/rooms/${room.roomId}`);
+              return room;
+            } catch {
+              return null;
+            }
+          })
+        );
+
+        const validRooms = checkedRooms.filter(Boolean);
+
+        setRecentRooms(validRooms);
+        localStorage.setItem('cs_recent_rooms', JSON.stringify(validRooms));
+      } catch (error) {
+        console.log('recent rooms cleanup error:', error.message);
+        localStorage.removeItem('cs_recent_rooms');
+        setRecentRooms([]);
+      }
+    };
+
+    loadRecentRooms();
   }, []);
 
   const addToRecent = (room) => {
@@ -40,13 +66,16 @@ export default function DashboardPage() {
       setError('Enter a room name');
       return;
     }
+
     setCreating(true);
     setError('');
+
     try {
       const { data } = await api.post('/api/rooms', {
         name: roomName.trim(),
         language,
       });
+
       addToRecent(data.room);
       router.push(`/room/${data.room.roomId}`);
     } catch (err) {
@@ -56,13 +85,21 @@ export default function DashboardPage() {
     }
   };
 
-  const handleJoinRoom = () => {
+  const handleJoinRoom = async () => {
     const code = joinCode.trim();
+
     if (!code) {
       setError('Enter a room code');
       return;
     }
-    router.push(`/room/${code}`);
+
+    try {
+      const { data } = await api.get(`/api/rooms/${code}`);
+      addToRecent(data.room);
+      router.push(`/room/${code}`);
+    } catch (err) {
+      setError(err.response?.data?.message || 'Room not found');
+    }
   };
 
   if (loading || !user) return null;
