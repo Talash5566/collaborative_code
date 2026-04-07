@@ -7,6 +7,8 @@ export default function UserSidebar({
   input,
   setInput,
   sendMessage,
+  typingUsers,
+  handleInputChange,
 }) {
   const fallbackColors = [
     '#93C5FD',
@@ -115,7 +117,7 @@ export default function UserSidebar({
         <div className="mt-4 flex gap-2">
           <input
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            oonChange={handleInputChange}
             onKeyDown={(e) => {
               if (e.key === 'Enter') sendMessage();
             }}

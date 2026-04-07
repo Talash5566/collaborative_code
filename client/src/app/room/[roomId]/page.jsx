@@ -27,6 +27,7 @@ export default function RoomPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const debouncedCode = useDebounce(code, 50);
+  const [typingUsers, setTypingUsers] = useState({});
 
   const sendMessage = () => {
     if (!input.trim()) return;
@@ -40,6 +41,14 @@ export default function RoomPage() {
 
     setInput('');
   }
+  const handleInputChange = (e) => {
+    setInput(e.target.value);
+
+    emit('user_typing', {
+      roomId,
+      username: user?.username || 'Anonymous',
+    });
+  };
 
   useEffect(() => {
     const off = on('chat_message', (message) => {
@@ -268,6 +277,8 @@ export default function RoomPage() {
               input={input}
               setInput={setInput}
               sendMessage={sendMessage}
+              typingUsers={typingUsers}
+              handleInputChange={handleInputChange}
             />
           </div>
         </main>

@@ -138,6 +138,13 @@ function roomHandler(io) {
             }
         });
 
+        socket.on('user_typing', ({ roomId, username }) => {
+            socket.to(roomId).emit('user_typing', {
+                socketId: socket.id,
+                username,
+            });
+        });
+
 
 
     });
