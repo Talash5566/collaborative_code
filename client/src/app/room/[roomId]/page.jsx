@@ -26,21 +26,23 @@ export default function RoomPage() {
   const [code, setCode] = useState('');
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
-  const debouncedCode = useDebounce(code, 50);
   const [typingUsers, setTypingUsers] = useState({});
+
+  const debouncedCode = useDebounce(code, 50);
 
   const sendMessage = () => {
     if (!input.trim()) return;
 
     emit('chat_message', {
       roomId,
-      text: input,
+      text: input.trim(),
       username: user?.username || 'Anonymous',
       avatarColor: '#22c55e',
     });
 
     setInput('');
-  }
+  };
+
   const handleInputChange = (e) => {
     setInput(e.target.value);
 
@@ -56,7 +58,7 @@ export default function RoomPage() {
     });
 
     return off;
-  }, []);
+  }, [on]);
 
   useEffect(() => {
     if (!authLoading && !user) router.push('/login');
@@ -159,26 +161,7 @@ export default function RoomPage() {
     return cleanup;
   }, [on]);
 
-  useEffect(() => {
-    const cleanup = on('user_typing', ({ socketId, username }) => {
-      setTypingUsers((prev) => ({
-        ...prev,
-        [socketId]: username,
-      }));
-
-      // auto remove after 2 sec
-      setTimeout(() => {
-        setTypingUsers((prev) => {
-          const copy = { ...prev };
-          delete copy[socketId];
-          return copy;
-        });
-      }, 2000);
-    });
-
-    return cleanup;
-  }, [on]);
-
+  // KEEP ONLY THIS ONE typing listener
   useEffect(() => {
     const cleanup = on('user_typing', ({ socketId, username }) => {
       setTypingUsers((prev) => ({
@@ -265,10 +248,10 @@ export default function RoomPage() {
                     {room?.language === 'python'
                       ? 'py'
                       : room?.language === 'java'
-                        ? 'java'
-                        : room?.language === 'cpp'
-                          ? 'cpp'
-                          : 'js'}
+                      ? 'java'
+                      : room?.language === 'cpp'
+                      ? 'cpp'
+                      : 'js'}
                     <span className="absolute -bottom-[18px] left-0 h-[2px] w-full rounded-full bg-blue-500" />
                   </button>
                 </div>
