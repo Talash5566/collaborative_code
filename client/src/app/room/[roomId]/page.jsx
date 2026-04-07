@@ -159,6 +159,26 @@ export default function RoomPage() {
     return cleanup;
   }, [on]);
 
+  useEffect(() => {
+    const cleanup = on('user_typing', ({ socketId, username }) => {
+      setTypingUsers((prev) => ({
+        ...prev,
+        [socketId]: username,
+      }));
+  
+      // auto remove after 2 sec
+      setTimeout(() => {
+        setTypingUsers((prev) => {
+          const copy = { ...prev };
+          delete copy[socketId];
+          return copy;
+        });
+      }, 2000);
+    });
+  
+    return cleanup;
+  }, [on]);
+
   const copyRoomLink = () => {
     navigator.clipboard.writeText(window.location.href);
     setNotification('Room link copied');
