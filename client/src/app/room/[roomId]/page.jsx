@@ -165,7 +165,7 @@ export default function RoomPage() {
         ...prev,
         [socketId]: username,
       }));
-  
+
       // auto remove after 2 sec
       setTimeout(() => {
         setTypingUsers((prev) => {
@@ -175,7 +175,26 @@ export default function RoomPage() {
         });
       }, 2000);
     });
-  
+
+    return cleanup;
+  }, [on]);
+
+  useEffect(() => {
+    const cleanup = on('user_typing', ({ socketId, username }) => {
+      setTypingUsers((prev) => ({
+        ...prev,
+        [socketId]: username,
+      }));
+
+      setTimeout(() => {
+        setTypingUsers((prev) => {
+          const updated = { ...prev };
+          delete updated[socketId];
+          return updated;
+        });
+      }, 2000);
+    });
+
     return cleanup;
   }, [on]);
 
