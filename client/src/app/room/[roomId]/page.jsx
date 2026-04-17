@@ -27,6 +27,9 @@ export default function RoomPage() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState('');
   const [typingUsers, setTypingUsers] = useState({});
+  const [output, setOutput] = useState('');
+  const [isRunning, setIsRunning] = useState(false);
+  const [runError, setRunError] = useState('');
 
   const debouncedCode = useDebounce(code, 50);
 
@@ -50,6 +53,27 @@ export default function RoomPage() {
       roomId,
       username: user?.username || 'Anonymous',
     });
+  };
+
+  const handleRunCode = async () => {
+    try {
+      setIsRunning(true);
+      setRunError('');
+      setOutput('Running...');
+
+      // temporary dummy output
+      setTimeout(() => {
+        if (code.includes('console.log')) {
+          setOutput('Detected console.log\n(Output simulation)');
+        } else {
+          setOutput('Code executed successfully.');
+        }
+        setIsRunning(false);
+      }, 1200);
+    } catch (error) {
+      setRunError('Failed to run code');
+      setIsRunning(false);
+    }
   };
 
   useEffect(() => {
@@ -242,16 +266,30 @@ export default function RoomPage() {
           <div className="flex flex-1 overflow-hidden rounded-[28px] border border-white/10 bg-[#0c0c0d] shadow-[0_0_0_1px_rgba(255,255,255,0.02)]">
             <section className="flex min-w-0 flex-1 flex-col">
               <div className="flex h-14 items-center justify-between border-b border-white/8 bg-[#101112] px-5">
+
+                <div className="flex items-center gap-3">
+                  <button
+                    onClick={handleRunCode}
+                    disabled={isRunning}
+                    className="rounded-lg bg-emerald-500 px-3 py-1 text-xs font-medium text-black hover:bg-emerald-400 disabled:opacity-50"
+                  >
+                    {isRunning ? 'Running...' : 'Run'}
+                  </button>
+
+                  <div className="rounded-full border border-emerald-500/15 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
+                    {users.length} live
+                  </div>
+                </div>
                 <div className="flex items-center gap-5">
                   <button className="relative text-sm font-medium text-white">
                     main.
                     {room?.language === 'python'
                       ? 'py'
                       : room?.language === 'java'
-                      ? 'java'
-                      : room?.language === 'cpp'
-                      ? 'cpp'
-                      : 'js'}
+                        ? 'java'
+                        : room?.language === 'cpp'
+                          ? 'cpp'
+                          : 'js'}
                     <span className="absolute -bottom-[18px] left-0 h-[2px] w-full rounded-full bg-blue-500" />
                   </button>
                 </div>
@@ -263,32 +301,47 @@ export default function RoomPage() {
                 </div>
               </div>
 
-              <div className="min-h-0 flex-1 bg-[#1e1e1e]">
-                <Editor
-                  height="100%"
-                  language={room?.language || 'javascript'}
-                  value={code}
-                  onChange={(value) => setCode(value || '')}
-                  onMount={(editor) => {
-                    editorRef.current = editor;
-                  }}
-                  theme="vs-dark"
-                  options={{
-                    minimap: { enabled: false },
-                    fontSize: 16,
-                    lineHeight: 26,
-                    padding: { top: 18 },
-                    scrollBeyondLastLine: false,
-                    automaticLayout: true,
-                    smoothScrolling: true,
-                    wordWrap: 'on',
-                    tabSize: 2,
-                    roundedSelection: true,
-                    cursorBlinking: 'smooth',
-                    overviewRulerBorder: false,
-                    hideCursorInOverviewRuler: true,
-                  }}
-                />
+              <div className="flex flex-col min-h-0 flex-1">
+
+                {/* Editor */}
+                <div className="flex-1 bg-[#1e1e1e]">
+                  <Editor
+                    height="100%"
+                    language={room?.language || 'javascript'}
+                    value={code}
+                    onChange={(value) => setCode(value || '')}
+                    onMount={(editor) => {
+                      editorRef.current = editor;
+                    }}
+                    theme="vs-dark"
+                    options={{
+                      minimap: { enabled: false },
+                      fontSize: 16,
+                      lineHeight: 26,
+                      padding: { top: 18 },
+                      scrollBeyondLastLine: false,
+                      automaticLayout: true,
+                      smoothScrolling: true,
+                      wordWrap: 'on',
+                      tabSize: 2,
+                      roundedSelection: true,
+                      cursorBlinking: 'smooth',
+                    }}
+                  />
+                </div>
+
+                {/* Output Panel */}
+                <div className="h-[140px] border-t border-white/10 bg-black px-4 py-3 overflow-auto">
+                  <p className="text-xs text-white/40 mb-1">Output</p>
+
+                  {runError ? (
+                    <p className="text-red-400 text-sm">{runError}</p>
+                  ) : (
+                    <pre className="text-sm text-white/80 whitespace-pre-wrap">
+                      {output || 'Run code to see output...'}
+                    </pre>
+                  )}
+                </div>
               </div>
             </section>
 
