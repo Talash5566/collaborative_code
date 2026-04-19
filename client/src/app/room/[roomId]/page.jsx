@@ -61,17 +61,21 @@ export default function RoomPage() {
       setRunError('');
       setOutput('Running...');
 
-      // temporary dummy output
-      setTimeout(() => {
-        if (code.includes('console.log')) {
-          setOutput('Detected console.log\n(Output simulation)');
-        } else {
-          setOutput('Code executed successfully.');
-        }
-        setIsRunning(false);
-      }, 1200);
+      const { data } = await api.post('/api/execute/run', {
+        code,
+        language: room?.language || 'javascript',
+      });
+
+      if (data.success) {
+        setOutput(data.output || 'No output');
+      } else {
+        setRunError(data.message || 'Failed to run code');
+      }
     } catch (error) {
-      setRunError('Failed to run code');
+      setRunError(
+        error?.response?.data?.message || 'Failed to run code'
+      );
+    } finally {
       setIsRunning(false);
     }
   };
@@ -295,9 +299,7 @@ export default function RoomPage() {
                 </div>
 
                 <div className="flex items-center gap-2">
-                  <div className="rounded-full border border-emerald-500/15 bg-emerald-500/10 px-3 py-1 text-xs font-medium text-emerald-300">
-                    {users.length} live
-                  </div>
+
                 </div>
               </div>
 
