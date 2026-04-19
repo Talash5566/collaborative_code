@@ -3,6 +3,7 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const RoomRouter = require('./routes/room.routes');
 const authRouter = require('./routes/auth.routes');
+const executeRouter = require('./routes/execute.routes');
 const app = express();
 
 app.use(express.json());
@@ -21,5 +22,5 @@ app.get('/', (req,res)=>{
 
 app.use('/api/auth' , authRouter)
 app.use('/api/rooms' , RoomRouter)
-
+app.use('./api/execute' , executeRouter)
 module.exports = app;
