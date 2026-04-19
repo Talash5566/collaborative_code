@@ -22,5 +22,5 @@ app.get('/', (req,res)=>{
 
 app.use('/api/auth' , authRouter)
 app.use('/api/rooms' , RoomRouter)
-app.use('./api/execute' , executeRouter)
+app.use('/api/execute' , executeRouter)
 module.exports = app;
