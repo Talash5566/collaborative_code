@@ -145,6 +145,13 @@ function roomHandler(io) {
             });
         });
 
+        socket.on('share_output', ({ roomId, output, runError }) => {
+            socket.to(roomId).emit('receive_output', {
+                output,
+                runError,
+            });
+        });
+
 
 
     });

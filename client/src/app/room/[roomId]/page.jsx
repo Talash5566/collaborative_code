@@ -60,21 +60,42 @@ export default function RoomPage() {
       setIsRunning(true);
       setRunError('');
       setOutput('Running...');
-
+  
       const { data } = await api.post('/api/execute/run', {
         code,
         language: room?.language || 'javascript',
       });
-
+  
       if (data.success) {
-        setOutput(data.output || 'No output');
+        const finalOutput = data.output || 'No output';
+        setOutput(finalOutput);
+  
+        emit('share_output', {
+          roomId,
+          output: finalOutput,
+          runError: '',
+        });
       } else {
-        setRunError(data.message || 'Failed to run code');
+        const errorMessage = data.message || 'Failed to run code';
+        setRunError(errorMessage);
+  
+        emit('share_output', {
+          roomId,
+          output: '',
+          runError: errorMessage,
+        });
       }
     } catch (error) {
-      setRunError(
-        error?.response?.data?.message || 'Failed to run code'
-      );
+      const errorMessage =
+        error?.response?.data?.message || 'Failed to run code';
+  
+      setRunError(errorMessage);
+  
+      emit('share_output', {
+        roomId,
+        output: '',
+        runError: errorMessage,
+      });
     } finally {
       setIsRunning(false);
     }
@@ -169,6 +190,16 @@ export default function RoomPage() {
       }, 0);
     });
 
+    return cleanup;
+  }, [on]);
+
+  useEffect(() => {
+    const cleanup = on('receive_output', ({ output, runError }) => {
+      setOutput(output || '');
+      setRunError(runError || '');
+      setIsRunning(false);
+    });
+  
     return cleanup;
   }, [on]);
 
