@@ -1,9 +1,10 @@
 const express = require('express');
 const router = express.Router();
+const Room = require('../models/Room'); 
 
 router.post('/run', async (req, res) => {
     try {
-        const { code, language } = req.body;
+        const { code, language, roomId } = req.body; 
 
         if (!code) {
             return res.status(400).json({
@@ -12,10 +13,20 @@ router.post('/run', async (req, res) => {
             });
         }
 
-        // TEMP: fake execution (we will upgrade later)
+        
+        const output = `Output:\n\n${code}`;
+
+       
+        if (roomId) {
+            await Room.findOneAndUpdate(
+                { roomId },
+                { output, runError: '' }
+            );
+        }
+
         return res.json({
             success: true,
-            output: `Output:\n\n${code}`
+            output
         });
 
     } catch (error) {

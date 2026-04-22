@@ -19,6 +19,14 @@ const roomSchema = new mongoose.Schema({
         type: String,
         default: 'javascript'
     },
+    output: {
+        type: String,
+        default: ''
+    },
+    runError: {
+        type: String,
+        default: ''
+    },
     createdBy: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'User'

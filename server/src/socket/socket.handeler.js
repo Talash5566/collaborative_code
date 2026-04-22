@@ -43,7 +43,9 @@ function roomHandler(io) {
                     roomId: room.roomId,
                     name: room.name,
                     code: room.code,
-                    language: room.language
+                    language: room.language,
+                    output: room.output || '',
+                    runError: room.runError || '',
                 });
 
                 io.to(roomId).emit('room_users', users);
@@ -145,11 +147,27 @@ function roomHandler(io) {
             });
         });
 
-        socket.on('share_output', ({ roomId, output, runError }) => {
-            socket.to(roomId).emit('receive_output', {
-                output,
-                runError,
-            });
+        socket.on('share_output', async ({ roomId, output, runError }) => {
+            try {
+                //  SAVE TO DB
+                await Room.findOneAndUpdate(
+                    { roomId },
+                    {
+                        output: output || '',
+                        runError: runError || '',
+                    },
+                    { new: true }
+                );
+        
+                //  SEND TO ALL USERS (INCLUDING SENDER)
+                io.to(roomId).emit('receive_output', {
+                    output: output || '',
+                    runError: runError || '',
+                });
+        
+            } catch (error) {
+                console.log('share_output error:', error.message);
+            }
         });
 
 

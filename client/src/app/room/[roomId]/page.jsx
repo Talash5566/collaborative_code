@@ -207,6 +207,8 @@ export default function RoomPage() {
     const cleanup = on('load_room_data', (data) => {
       isRemoteChange.current = true;
       setCode(data.code || '// Start coding here...');
+      setOutput(data.output || '');
+      setRunError(data.runError || '');
     });
 
     return cleanup;
